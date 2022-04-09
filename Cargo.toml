@@ -5,7 +5,9 @@ edition = "2021"
 publish = false
 
 [dependencies]
-axum = "0.5.1"
-hyper = { version = "0.14.18", features = ["full"] }
-tokio = { version = "1.17.0", features = ["full"] }
-tower = "0.4.12"
+axum = { version = "0.5.1", features = ["headers"] }
+tokio = { version = "1.17.0", features = [
+    "rt-multi-thread",
+    "macros",
+    "parking_lot",
+] }
