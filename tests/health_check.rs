@@ -73,7 +73,7 @@ async fn spawn_app() -> String {
     tokio::spawn(async move {
         axum::Server::from_tcp(listener)
             .unwrap()
-            .serve(zero2prod::app().into_make_service())
+            .serve(zero2prod::startup::app().into_make_service())
             .await
             .unwrap()
     });
