@@ -19,6 +19,7 @@ tokio = { version = "1.17.0", features = [
     "parking_lot",
 ] }
 serde = { version = "1.0.136", features = ["derive"] }
+config = "0.13.0"
 
 [dependencies.sqlx]
 version = "0.5.11"
