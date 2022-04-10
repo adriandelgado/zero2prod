@@ -12,7 +12,7 @@ on:
 env:
   CARGO_TERM_COLOR: always
   SQLX_VERSION: 0.5.11
-  SQLX_FEATURES: "postgres,runtime-tokio-rustls"
+  SQLX_FEATURES: "postgres runtime-tokio-rustls"
 
 jobs:
   test:
@@ -65,7 +65,7 @@ jobs:
             sqlx-cli
             --force
             --version=${{ env.SQLX_VERSION }}
-            --features=${{ env.SQLX_FEATURES }}
+            --features ${{ env.SQLX_FEATURES }}
             --no-default-features
             --locked
       - name: Migrate database
