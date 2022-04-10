@@ -24,7 +24,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: postgres
+          POSTGRES_DB: newsletter
         ports:
           - 5432:5432
     steps:
@@ -101,7 +101,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: postgres
+          POSTGRES_DB: newsletter
         ports:
           - 5432:5432
 
@@ -155,7 +155,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
-          POSTGRES_DB: postgres
+          POSTGRES_DB: newsletter
         ports:
           - 5432:5432
 
