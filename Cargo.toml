@@ -20,6 +20,18 @@ tokio = { version = "1.17.0", features = [
 ] }
 serde = { version = "1.0.136", features = ["derive"] }
 
+[dependencies.sqlx]
+version = "0.5.11"
+default-features = false
+features = [
+    "runtime-tokio-rustls",
+    "macros",
+    "postgres",
+    "uuid",
+    "time",
+    "migrate",
+]
+
 
 [dev-dependencies]
 reqwest = "0.11.10"
