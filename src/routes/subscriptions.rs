@@ -9,10 +9,20 @@ pub struct FormData {
     name: String,
 }
 
+#[tracing::instrument(
+    name = "Adding a new subscriber.",
+    skip(input, pool),
+    fields(
+        subscriber_email = %input.email,
+        subscriber_name = %input.name,
+    )
+)]
 pub async fn subscribe(
     Form(input): Form<FormData>,
     Extension(pool): Extension<PgPool>,
 ) -> StatusCode {
+    tracing::info!("Saving new subscriber details into database.");
+
     match sqlx::query!(
         r#"
             INSERT INTO subscriptions (id, email, name, subscribed_at)
@@ -27,8 +37,8 @@ pub async fn subscribe(
     .await
     {
         Ok(_) => StatusCode::OK,
-        Err(e) => {
-            println!("Failed to execute query: {}", e);
+        Err(error) => {
+            tracing::error!("Failed to execute query: {error}");
             StatusCode::INTERNAL_SERVER_ERROR
         }
     }

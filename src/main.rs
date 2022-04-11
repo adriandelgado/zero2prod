@@ -6,8 +6,10 @@ use zero2prod::{configuration::get_configuration, startup::run, telemetry};
 #[tokio::main]
 async fn main() {
     let tracing_subscriber =
-        telemetry::get_tracing_subscriber("zero2prod".into(), "info".into(), std::io::stdout);
-    telemetry::init_tracing_subscriber(tracing_subscriber);
+        telemetry::get_tracing_subscriber("zero2prod".into(), "debug".into(), std::io::stdout);
+
+    tracing::subscriber::set_global_default(tracing_subscriber)
+        .expect("Failed to assign global tracing subscriber.");
 
     let configuration = get_configuration().expect("Failed to read configuration file.");
     let connection = PgPool::connect(configuration.database.connection_string().expose_secret())

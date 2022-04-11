@@ -1,14 +1,19 @@
+use once_cell::sync::Lazy;
 use reqwest::header::CONTENT_TYPE;
 use secrecy::ExposeSecret;
 use sqlx::{Connection, Executor, PgConnection, PgPool};
 use std::net::{SocketAddr, TcpListener};
 use uuid::Uuid;
-use zero2prod::configuration::{get_configuration, DatabaseSettings};
+use zero2prod::{
+    configuration::{get_configuration, DatabaseSettings},
+    telemetry,
+};
 
 #[tokio::test]
 async fn health_check_works() {
     // Arrange
     let app = spawn_app().await;
+
     let client = reqwest::Client::new();
 
     // Act
@@ -29,8 +34,10 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
     let app = spawn_app().await;
 
     let client = reqwest::Client::new();
+
     // Act
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
+
     let response = client
         .post(&format!("{}/subscriptions", app.address))
         .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
@@ -38,6 +45,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
         .send()
         .await
         .expect("Failed to execute request.");
+
     // Assert
     assert_eq!(200, response.status().as_u16());
 
@@ -45,6 +53,7 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
         .fetch_one(&app.db_pool)
         .await
         .expect("Failed to fetch saved subscription.");
+
     assert_eq!(saved.email, "ursula_le_guin@gmail.com");
     assert_eq!(saved.name, "le guin");
 }
@@ -53,12 +62,15 @@ async fn subscribe_returns_a_200_for_valid_form_data() {
 async fn subscribe_returns_a_400_when_data_is_missing() {
     // Arrange
     let app = spawn_app().await;
+
     let client = reqwest::Client::new();
+
     let test_cases = vec![
         ("name=le%20guin", "missing the email"),
         ("email=ursula_le_guin%40gmail.com", "missing the name"),
         ("", "missing both name and email"),
     ];
+
     for (invalid_body, error_message) in test_cases {
         // Act
         let response = client
@@ -68,6 +80,7 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
             .send()
             .await
             .expect("Failed to execute request.");
+
         // Assert
         assert_eq!(
             422,
@@ -79,12 +92,30 @@ async fn subscribe_returns_a_400_when_data_is_missing() {
     }
 }
 
+static TRACING: Lazy<()> = Lazy::new(|| {
+    let name = "test".into();
+    let env_filter = "debug".into();
+
+    if std::env::var("Z2P_TEST_LOG").is_ok() {
+        let tracing_subscriber =
+            telemetry::get_tracing_subscriber(name, env_filter, std::io::stdout);
+        tracing::subscriber::set_global_default(tracing_subscriber)
+            .expect("Failed to assign global tracing subscriber.");
+    } else {
+        let tracing_subscriber = telemetry::get_tracing_subscriber(name, env_filter, std::io::sink);
+        tracing::subscriber::set_global_default(tracing_subscriber)
+            .expect("Failed to assign global tracing subscriber.");
+    };
+});
+
 pub struct TestApp {
     pub address: String,
     pub db_pool: PgPool,
 }
 
 async fn spawn_app() -> TestApp {
+    Lazy::force(&TRACING);
+
     let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0)))
         .expect("Failed to bind random port");
     let address = format!("http://{}", listener.local_addr().unwrap());
