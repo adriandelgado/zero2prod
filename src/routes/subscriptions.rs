@@ -21,25 +21,35 @@ pub async fn subscribe(
     Form(input): Form<FormData>,
     Extension(pool): Extension<PgPool>,
 ) -> StatusCode {
-    tracing::info!("Saving new subscriber details into database.");
-
-    match sqlx::query!(
-        r#"
-            INSERT INTO subscriptions (id, email, name, subscribed_at)
-            VALUES ($1, $2, $3, $4)
-        "#,
-        Uuid::new_v4(),
-        input.email,
-        input.name,
-        OffsetDateTime::now_utc()
-    )
-    .execute(&pool)
-    .await
-    {
+    match insert_subscriber(&pool, &input).await {
         Ok(_) => StatusCode::OK,
         Err(error) => {
             tracing::error!("Failed to execute query: {error}");
             StatusCode::INTERNAL_SERVER_ERROR
         }
     }
+}
+
+#[tracing::instrument(
+    name = "Saving new subscriber details in the database",
+    skip(form, pool)
+)]
+pub async fn insert_subscriber(pool: &PgPool, form: &FormData) -> Result<(), sqlx::Error> {
+    sqlx::query!(
+        r#"
+            INSERT INTO subscriptions (id, email, name, subscribed_at)
+            VALUES ($1, $2, $3, $4)
+        "#,
+        Uuid::new_v4(),
+        form.email,
+        form.name,
+        OffsetDateTime::now_utc()
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| {
+        tracing::error!("Failed to execute query: {:?}", e);
+        e
+    })?;
+    Ok(())
 }
