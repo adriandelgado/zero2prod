@@ -10,8 +10,8 @@ use tower_http::trace::TraceLayer;
 use tracing::{span, Level};
 use uuid::Uuid;
 
-pub async fn run(addr: &SocketAddr, connection: PgPool) {
-    let app = app(connection);
+pub async fn run(addr: &SocketAddr, db_pool: PgPool) {
+    let app = app(db_pool);
 
     axum::Server::bind(addr)
         .serve(app.into_make_service())

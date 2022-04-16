@@ -2,6 +2,12 @@ use tracing::Subscriber;
 use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_subscriber::{fmt::MakeWriter, layer::SubscriberExt, EnvFilter, Registry};
 
+/// Compose multiple layers into a `tracing`'s subscriber.
+///
+/// # Implementation Notes
+///
+/// We are using `impl Subscriber` as return type to avoid having to spell out the actual
+/// type of the returned subscriber, which is indeed quite complex.
 pub fn get_tracing_subscriber<Sink>(
     name: String,
     default_env_filter: String,

@@ -23,10 +23,7 @@ pub async fn subscribe(
 ) -> StatusCode {
     match insert_subscriber(&pool, &input).await {
         Ok(_) => StatusCode::OK,
-        Err(error) => {
-            tracing::error!("Failed to execute query: {error}");
-            StatusCode::INTERNAL_SERVER_ERROR
-        }
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR,
     }
 }
 
@@ -47,9 +44,9 @@ pub async fn insert_subscriber(pool: &PgPool, form: &FormData) -> Result<(), sql
     )
     .execute(pool)
     .await
-    .map_err(|e| {
-        tracing::error!("Failed to execute query: {:?}", e);
-        e
+    .map_err(|error| {
+        tracing::error!("Failed to execute query: {error}");
+        error
     })?;
     Ok(())
 }
