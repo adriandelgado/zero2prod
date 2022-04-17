@@ -54,7 +54,8 @@ jobs:
         with:
           path: |
             ~/.cargo/bin/sqlx
-          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}
+            ~/.cargo/bin/cargo-sqlx
+          key: ${{ runner.os }}-sqlx-${{ env.SQLX_VERSION }}-${{ env.SQLX_FEATURES }}-2
 
       - name: Install sqlx-cli
         uses: actions-rs/cargo@v1
@@ -68,10 +69,16 @@ jobs:
             --features "${{ env.SQLX_FEATURES }}"
             --no-default-features
             --locked
+
       - name: Migrate database
         run: |
           sudo apt-get install libpq-dev -y
           SKIP_DOCKER=true ./scripts/init_db.sh
+
+      - name: Check sqlx-data.json is up-to-date
+        run: |
+          cargo sqlx prepare --check -- --bin zero2prod
+
       - name: Run cargo test
         uses: actions-rs/cargo@v1
         with:
@@ -136,10 +143,12 @@ jobs:
             --features "${{ env.SQLX_FEATURES }}"
             --no-default-features
             --locked
+
       - name: Migrate database
         run: |
           sudo apt-get install libpq-dev -y
           SKIP_DOCKER=true ./scripts/init_db.sh
+
       - name: Run clippy
         uses: actions-rs/clippy-check@v1
         with:
@@ -189,10 +198,12 @@ jobs:
             --features "${{ env.SQLX_FEATURES }}"
             --no-default-features
             --locked
+
       - name: Migrate database
         run: |
           sudo apt-get install libpq-dev -y
           SKIP_DOCKER=true ./scripts/init_db.sh
+
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
