@@ -1,4 +1,7 @@
-FROM lukemathwalker/cargo-chef:latest-rust-1.60.0 as chef
+FROM rust:1.60.0 AS chef 
+# We only pay the installation cost once, 
+# it will be cached from the second build onwards
+RUN cargo install cargo-chef 
 WORKDIR /app
 RUN apt update && apt install lld clang -y
 
